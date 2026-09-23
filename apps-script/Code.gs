@@ -4,7 +4,8 @@
 
 var SHEET_NAME = 'Sales';
 var HEADER = ['order_no', 'date', 'time', 'item', 'qty', 'unit_price', 'addons', 'addons_price',
-              'line_total', 'order_total', 'payment', 'status', 'order_id'];
+              'line_total', 'order_total', 'payment', 'status', 'order_id', 'customer'];
+var ID_COL = 13; // order_id column (1-based)
 
 function doPost(e) {
   var lock = LockService.getScriptLock();
@@ -18,7 +19,7 @@ function doPost(e) {
     // Upsert: drop any existing rows for these orders (e.g. a retry or a void), then append.
     var last = sheet.getLastRow();
     if (last > 1 && data.orders.length) {
-      var col = sheet.getRange(2, HEADER.length, last - 1, 1).getValues();
+      var col = sheet.getRange(2, ID_COL, last - 1, 1).getValues();
       for (var r = col.length - 1; r >= 0; r--) {
         if (ids[col[r][0]]) sheet.deleteRow(r + 2);
       }
@@ -46,6 +47,8 @@ function getSheet_() {
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(HEADER);
     sheet.setFrozenRows(1);
+  } else if (sheet.getRange(1, HEADER.length).getValue() !== HEADER[HEADER.length - 1]) {
+    sheet.getRange(1, 1, 1, HEADER.length).setValues([HEADER]); // add new columns to an older header
   }
   return sheet;
 }

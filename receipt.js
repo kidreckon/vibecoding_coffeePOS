@@ -33,6 +33,7 @@ export function receiptLines(order, bizName) {
   const rows = [];
   rows.push({ text: ascii(bizName).toUpperCase(), big: true, center: true });
   rows.push({ text: 'Order ' + orderNoStr(order.no), big: true, center: true });
+  if (order.customer) rows.push({ text: ascii(order.customer).slice(0, WIDTH), big: true, center: true });
   rows.push({ text: rule });
   for (const l of order.lines) {
     for (const t of leftRight(`${l.qty}x ${ascii(l.name)}`, rp(l.unit * l.qty), '   ')) rows.push({ text: t });

@@ -153,11 +153,13 @@ async function charge(payment) {
     const no = await db.nextOrderNo(day, state.settings.counterMode);
     const order = {
       id: uid(), no, day, ts: now.toISOString(), payment, status: 'ok', synced: false,
+      customer: $('cust-name').value.trim(),
       lines: state.cart.map(({ name, unit, qty, addons }) => ({ name, unit, qty, addons })),
       total: cartTotal(),
     };
     await db.putOrder(order);
     state.cart = [];
+    $('cust-name').value = '';
     closeSheets();
     renderOrder();
     toast(`Order ${orderNoStr(no)} saved · ${rp(order.total, true)}`);
@@ -247,7 +249,7 @@ async function renderSales() {
 
   $('orders').innerHTML = orders.slice().reverse().map((o) => `
     <div class="order-card ${o.status === 'void' ? 'void' : ''}">
-      <header><span>${orderNoStr(o.no)}</span><span class="o-total">${rp(o.total, true)}</span></header>
+      <header><span>${orderNoStr(o.no)}${o.customer ? ' · ' + esc(o.customer) : ''}</span><span class="o-total">${rp(o.total, true)}</span></header>
       <div class="o-meta">${esc(o.day)} ${timeStr(new Date(o.ts))} · ${esc(o.payment)}${o.status === 'void' ? ' · VOID' : ''}${state.settings.sheetsUrl && !o.synced ? ' · not synced' : ''}</div>
       <div class="o-items">${o.lines.map((l) => `${l.qty}× ${esc(l.name)}${l.addons.length ? ' (' + l.addons.map((a) => esc(a.name)).join(', ') + ')' : ''}`).join('<br>')}</div>
       <div class="row">
@@ -411,7 +413,7 @@ function onClick(e) {
     }
     case 'sheet-close': return closeSheets();
     case 'checkout-open': return openCheckout();
-    case 'cart-clear': state.cart = []; closeSheets(); return renderOrder();
+    case 'cart-clear': state.cart = []; $('cust-name').value = ''; closeSheets(); return renderOrder();
     case 'printer-connect': return connectPrinter();
     case 'probe-channels': return probeChannels();
     case 'test-print': return printOrder({
@@ -465,6 +467,7 @@ async function init() {
   document.addEventListener('input', onInput);
   $('from').addEventListener('change', renderSales);
   $('to').addEventListener('change', renderSales);
+  $('cust-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') e.target.blur(); });
   $('s-print').addEventListener('change', async () => {
     state.settings.printMode = $('s-print').value;
     await db.kvSet('settings', state.settings);

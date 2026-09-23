@@ -53,6 +53,7 @@ The app remembers the printer for as long as it stays open. If the printer switc
 ```
       SECEDA HOMEBREW
         Order #007
+           BUDI
 --------------------------------
 1x Iced Latte          Rp28.000
    + Oat milk           Rp5.000
@@ -80,8 +81,8 @@ Go to **Settings → Menu items / Add-ons** to edit names, prices (Rp), categori
 
 The CSV has one row per line item:
 
-| order_no | date | time | item | qty | unit_price | addons | addons_price | line_total | order_total | payment | status | order_id |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| order_no | date | time | item | qty | unit_price | addons | addons_price | line_total | order_total | payment | status | order_id | customer |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 - Prices are plain numbers, so Sheets can sum them and use them in pivot tables.
 - Voided orders stay in the file with `status = void`. Filter them out when you total.

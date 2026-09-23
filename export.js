@@ -4,7 +4,7 @@ import { lineTotal, timeStr } from './util.js';
 
 export const COLUMNS = [
   'order_no', 'date', 'time', 'item', 'qty', 'unit_price', 'addons', 'addons_price',
-  'line_total', 'order_total', 'payment', 'status', 'order_id',
+  'line_total', 'order_total', 'payment', 'status', 'order_id', 'customer',
 ];
 
 export function orderRows(order) {
@@ -23,6 +23,7 @@ export function orderRows(order) {
     order.payment,
     order.status,
     order.id,
+    order.customer || '',
   ]);
 }
 
