@@ -183,6 +183,11 @@ input, select {
 }
 .toggles button.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 
+.troubleshoot { margin-top: 8px; }
+.troubleshoot summary { padding: 12px 0; font-weight: 700; color: var(--accent); }
+.troubleshoot .btn { width: 100%; margin: 8px 0; }
+.troubleshoot .toggles button { min-height: 48px; font-size: 16px; }
+
 /* Toast */
 .toast {
   position: fixed; left: 12px; right: 12px; top: calc(env(safe-area-inset-top, 0px) + 70px); z-index: 30;

@@ -68,6 +68,12 @@
           <button class="btn grow" data-action="printer-connect">Connect printer</button>
           <button class="btn grow" data-action="test-print">Test print</button>
         </div>
+        <details class="troubleshoot">
+          <summary>Connected but nothing prints?</summary>
+          <p class="hint">Tap <b>Find working channel</b>. The printer prints "CHANNEL n WORKS" for each channel that works. Then tap that channel below.</p>
+          <button class="btn grow" data-action="probe-channels">Find working channel</button>
+          <div class="toggles" id="channels"></div>
+        </details>
       </div>
 
       <div class="panel">

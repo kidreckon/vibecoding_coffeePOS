@@ -180,6 +180,7 @@ async function printOrder(order, mode = state.settings.printMode) {
   if (mode === 'system') { systemPrint(order); return; }
   try {
     await printer.printBytes(buildEscPos(order, state.settings.bizName));
+    toast(`${order.no ? orderNoStr(order.no) + ' s' : 'S'}ent to printer ✓`, { ms: 1500 });
   } catch (err) {
     if (err && err.name === 'NotFoundError') return; // user closed the device picker
     toast(`Print failed: ${err.message || err}`, {
@@ -197,6 +198,18 @@ function renderPrinter() {
   $('printer-status').textContent = !printer.supported()
     ? 'This browser cannot use Bluetooth. Use Chrome on Android (or the Bluefy browser on iPhone), or choose "phone print dialog" above.'
     : ok ? `Connected to ${printer.deviceName() || 'printer'}.` : 'Not connected. Turn the printer on, then tap Connect printer.';
+  $('channels').innerHTML = printer.listChannels().map((c) =>
+    `<button data-channel="${c.index}" class="${c.active ? 'on' : ''}">${esc(c.label)}${c.active ? ' ✓' : ''}</button>`).join('');
+}
+
+async function probeChannels() {
+  try {
+    const n = await printer.probeChannels();
+    toast(`Sent a test line to ${n} channel${n > 1 ? 's' : ''}. Tap the one that printed.`, { ms: 5000 });
+  } catch (err) {
+    if (err.name !== 'NotFoundError') toast(err.message || String(err), { error: true });
+  }
+  renderPrinter();
 }
 
 async function connectPrinter() {
@@ -362,6 +375,7 @@ function onClick(e) {
   if (d.pay) return charge(d.pay);
   if (d.reprint) return db.getOrder(d.reprint).then((o) => o && printOrder(o, state.settings.printMode === 'none' ? 'bluetooth' : state.settings.printMode));
   if (d.void) return toggleVoid(d.void);
+  if (d.channel !== undefined) { printer.useChannel(+d.channel); return toast('Printer channel saved. Try Test print.'); }
 
   if (d.itemDel !== undefined) { state.draft.items.splice(+d.itemDel, 1); return renderMenuEditor(); }
   if (d.addonDel !== undefined) {
@@ -390,6 +404,7 @@ function onClick(e) {
     case 'checkout-open': return openCheckout();
     case 'cart-clear': state.cart = []; closeSheets(); return renderOrder();
     case 'printer-connect': return connectPrinter();
+    case 'probe-channels': return probeChannels();
     case 'test-print': return printOrder({
       no: 0, ts: new Date().toISOString(), total: 33000,
       lines: [{ name: 'Test Latte', unit: 28000, qty: 1, addons: [{ name: 'Oat milk', price: 5000 }, { name: 'Iced', price: 0 }] }],
