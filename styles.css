@@ -188,6 +188,11 @@ input, select {
 .troubleshoot .btn { width: 100%; margin: 8px 0; }
 .troubleshoot .toggles button { min-height: 48px; font-size: 16px; }
 
+.steps { padding-left: 22px; margin: 6px 0 10px; }
+.steps li { margin-bottom: 6px; }
+a.btn.link { display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--text); margin: 6px 0; }
+[hidden] { display: none !important; }
+
 /* Toast */
 .toast {
   position: fixed; left: 12px; right: 12px; top: calc(env(safe-area-inset-top, 0px) + 70px); z-index: 30;

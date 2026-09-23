@@ -1,6 +1,6 @@
 // Offline cache: serve app files from cache, refresh them in the background.
 // Bump VERSION when shipping changes so phones pick up the new files.
-const VERSION = 'seceda-pos-v2';
+const VERSION = 'seceda-pos-v3';
 const FILES = [
   './', 'index.html', 'styles.css', 'app.js', 'db.js', 'util.js', 'menu.js',
   'receipt.js', 'printer.js', 'export.js', 'sheets.js', 'manifest.webmanifest',

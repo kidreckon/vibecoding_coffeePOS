@@ -169,6 +169,9 @@ async function charge(payment) {
 }
 
 // ---------- Printing ----------
+// Reprint / test print should still print even when auto-print is off.
+const printModeForManual = () => (state.settings.printMode === 'none' ? 'bluetooth' : state.settings.printMode);
+
 function systemPrint(order) {
   $('print-area').innerHTML = receiptLines(order, state.settings.bizName)
     .map((r) => `<div class="${r.big ? 'big' : r.bold ? 'bold' : ''}">${esc(r.text) || '&nbsp;'}</div>`).join('');
@@ -178,6 +181,7 @@ function systemPrint(order) {
 async function printOrder(order, mode = state.settings.printMode) {
   if (mode === 'none') return;
   if (mode === 'system') { systemPrint(order); return; }
+  if (mode === 'rawbt') { printer.printViaRawBT(buildEscPos(order, state.settings.bizName)); return; }
   try {
     await printer.printBytes(buildEscPos(order, state.settings.bizName));
     toast(`${order.no ? orderNoStr(order.no) + ' s' : 'S'}ent to printer ✓`, { ms: 1500 });
@@ -192,9 +196,14 @@ async function printOrder(order, mode = state.settings.printMode) {
 
 function renderPrinter() {
   const ok = printer.isConnected();
+  const rawbt = state.settings.printMode === 'rawbt';
   const btn = $('printer-btn');
-  btn.textContent = ok ? '🖨 Ready' : '🖨 Connect';
-  btn.classList.toggle('ok', ok);
+  btn.textContent = rawbt ? '🖨 Test print' : ok ? '🖨 Ready' : '🖨 Connect';
+  btn.dataset.action = rawbt ? 'test-print' : 'printer-connect';
+  btn.classList.toggle('ok', ok && !rawbt);
+  $('ble-printer').hidden = rawbt;
+  $('rawbt-help').hidden = !rawbt;
+  $('ble-trouble').hidden = rawbt;
   $('printer-status').textContent = !printer.supported()
     ? 'This browser cannot use Bluetooth. Use Chrome on Android (or the Bluefy browser on iPhone), or choose "phone print dialog" above.'
     : ok ? `Connected to ${printer.deviceName() || 'printer'}.` : 'Not connected. Turn the printer on, then tap Connect printer.';
@@ -373,7 +382,7 @@ function onClick(e) {
     return renderCheckout();
   }
   if (d.pay) return charge(d.pay);
-  if (d.reprint) return db.getOrder(d.reprint).then((o) => o && printOrder(o, state.settings.printMode === 'none' ? 'bluetooth' : state.settings.printMode));
+  if (d.reprint) return db.getOrder(d.reprint).then((o) => o && printOrder(o, printModeForManual()));
   if (d.void) return toggleVoid(d.void);
   if (d.channel !== undefined) { printer.useChannel(+d.channel); return toast('Printer channel saved. Try Test print.'); }
 
@@ -408,7 +417,7 @@ function onClick(e) {
     case 'test-print': return printOrder({
       no: 0, ts: new Date().toISOString(), total: 33000,
       lines: [{ name: 'Test Latte', unit: 28000, qty: 1, addons: [{ name: 'Oat milk', price: 5000 }, { name: 'Iced', price: 0 }] }],
-    }, state.settings.printMode === 'system' ? 'system' : 'bluetooth');
+    }, printModeForManual());
     case 'export': return exportCsv();
     case 'sync-now': return autoSync(true);
     case 'sheets-test': {
@@ -456,6 +465,11 @@ async function init() {
   document.addEventListener('input', onInput);
   $('from').addEventListener('change', renderSales);
   $('to').addEventListener('change', renderSales);
+  $('s-print').addEventListener('change', async () => {
+    state.settings.printMode = $('s-print').value;
+    await db.kvSet('settings', state.settings);
+    renderPrinter();
+  });
   document.querySelectorAll('.sheet').forEach((s) => s.addEventListener('click', (e) => { if (e.target === s) closeSheets(); }));
   window.addEventListener('online', () => autoSync());
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { keepAwake(); autoSync(); } });

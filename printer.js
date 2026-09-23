@@ -143,3 +143,13 @@ export async function probeChannels() {
   }
   return channels.length;
 }
+
+// ---- RawBT (classic Bluetooth) ----
+// Many printers (e.g. ones used with GrabMerchant) only print over classic Bluetooth (SPP),
+// which browsers cannot reach. The free Android app "RawBT" bridges it: we hand it the
+// ESC/POS bytes through an Android intent and it sends them to the paired printer.
+export function printViaRawBT(bytes) {
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  window.location.href = 'intent:base64,' + btoa(bin) + '#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;';
+}

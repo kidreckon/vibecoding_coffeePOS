@@ -30,6 +30,14 @@ Web Bluetooth and "install to home screen" only work over **HTTPS**, and GitHub 
 
 ## 3. Connect the printer
 
+> **Printer works with GrabMerchant (or another Android app) but not here?** It's a *classic Bluetooth* printer, which browsers can't reach directly. Use **RawBT** instead:
+> 1. Install **RawBT** from the Play Store. Pair the printer in Android **Settings → Bluetooth** if it isn't paired already.
+> 2. In RawBT, set **Connection method** to Bluetooth and select your printer. Set **Printer driver** to ESC/POS and paper to 58mm.
+> 3. In the POS, go to **Settings → After charging** and choose **Print via RawBT app**, then tap **Test print**.
+> 4. Close GrabMerchant first. Only one app can hold the printer connection at a time.
+
+**Direct Bluetooth (BLE printers):**
+
 1. Turn the EPPOS printer on. You **don't** need to pair it in Android's Bluetooth settings first.
 2. In the app, tap **🖨 Connect** (top right), then pick the printer from the list.
 3. Go to **Settings → Test print**.

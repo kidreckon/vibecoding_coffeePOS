@@ -54,7 +54,8 @@
         </label>
         <label class="field">After charging
           <select id="s-print">
-            <option value="bluetooth">Print via Bluetooth printer</option>
+            <option value="bluetooth">Print via Bluetooth printer (direct)</option>
+            <option value="rawbt">Print via RawBT app (classic Bluetooth, e.g. GrabMerchant printers)</option>
             <option value="system">Print via phone print dialog</option>
             <option value="none">Don't print</option>
           </select>
@@ -63,12 +64,26 @@
 
       <div class="panel">
         <h2>Printer</h2>
-        <p class="hint" id="printer-status"></p>
-        <div class="row">
-          <button class="btn grow" data-action="printer-connect">Connect printer</button>
-          <button class="btn grow" data-action="test-print">Test print</button>
+        <div id="rawbt-help" hidden>
+          <p class="hint">Printing through the <b>RawBT</b> app. One-time setup:</p>
+          <ol class="hint steps">
+            <li>Install <b>RawBT</b> from the Play Store.</li>
+            <li>Pair the printer in Android <b>Settings → Bluetooth</b> (skip if GrabMerchant already uses it).</li>
+            <li>In RawBT settings: <b>Connection method</b> = Bluetooth → pick your printer. <b>Printer driver</b> = ESC/POS. Paper = 58mm.</li>
+            <li>Close GrabMerchant (only one app can use the printer at a time), then tap <b>Test print</b> below.</li>
+          </ol>
+          <a class="btn grow link" href="https://play.google.com/store/apps/details?id=ru.a402d.rawbtprinter" target="_blank" rel="noopener">Get RawBT on Play Store</a>
         </div>
-        <details class="troubleshoot">
+        <div id="ble-printer">
+          <p class="hint" id="printer-status"></p>
+          <div class="row">
+            <button class="btn grow" data-action="printer-connect">Connect printer</button>
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn grow primary" data-action="test-print">Test print</button>
+        </div>
+        <details class="troubleshoot" id="ble-trouble">
           <summary>Connected but nothing prints?</summary>
           <p class="hint">Tap <b>Find working channel</b>. The printer prints "CHANNEL n WORKS" for each channel that works. Then tap that channel below.</p>
           <button class="btn grow" data-action="probe-channels">Find working channel</button>
