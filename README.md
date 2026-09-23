@@ -70,7 +70,7 @@ TOTAL                  Rp83.000
 Go to **Settings → Menu items / Add-ons** to edit names, prices (Rp), categories, and which add-ons each item offers. Then tap **Save settings & menu**.
 
 - Items with no add-ons go straight into the cart in one tap.
-- **Hot** and **Iced** can't both be selected on the same drink.
+- To ship a new default menu to the phone, edit `menu.js` and increase `MENU_VERSION`. The phone replaces its menu with the new one on next launch, overwriting any menu edits made on the phone.
 
 ## 5. Getting sales into Google Sheets
 

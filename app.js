@@ -3,7 +3,7 @@ import * as printer from './printer.js';
 import { buildEscPos, receiptLines } from './receipt.js';
 import { downloadCsv } from './export.js';
 import { syncPending, pendingOrders, testConnection } from './sheets.js';
-import { SAMPLE_MENU } from './menu.js';
+import { SAMPLE_MENU, MENU_VERSION } from './menu.js';
 import { rp, dayKey, timeStr, orderNoStr, uid, lineTotal } from './util.js';
 
 const DEFAULT_SETTINGS = {
@@ -459,7 +459,11 @@ async function keepAwake() {
 async function init() {
   state.settings = { ...DEFAULT_SETTINGS, ...(await db.kvGet('settings', {})) };
   state.menu = await db.kvGet('menu', null);
-  if (!state.menu) { state.menu = clone(SAMPLE_MENU); await db.kvSet('menu', state.menu); }
+  if (!state.menu || (await db.kvGet('menuVersion', 0)) < MENU_VERSION) {
+    state.menu = clone(SAMPLE_MENU);
+    await db.kvSet('menu', state.menu);
+    await db.kvSet('menuVersion', MENU_VERSION);
+  }
   $('brand').textContent = state.settings.bizName;
   $('from').value = $('to').value = dayKey();
 
