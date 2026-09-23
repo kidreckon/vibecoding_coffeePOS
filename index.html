@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2b1d14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Seceda POS</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand" id="brand">Seceda Homebrew</div>
+    <button class="chip" id="printer-btn" data-action="printer-connect">🖨 Connect</button>
+  </header>
+
+  <main>
+    <!-- ORDER -->
+    <section id="view-order" class="view active">
+      <div class="cats" id="cats"></div>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <!-- SALES -->
+    <section id="view-sales" class="view">
+      <div class="panel">
+        <div class="row">
+          <label>From <input type="date" id="from"></label>
+          <label>To <input type="date" id="to"></label>
+        </div>
+        <div class="stats" id="stats"></div>
+        <div class="row">
+          <button class="btn primary grow" data-action="export">⬇ Export CSV</button>
+        </div>
+        <div class="sync-line" id="sync-line"></div>
+      </div>
+      <div id="orders"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="view-settings" class="view">
+      <div class="panel">
+        <h2>Shop</h2>
+        <label class="field">Business name <input id="s-biz" type="text"></label>
+        <label class="field">Order number
+          <select id="s-counter">
+            <option value="daily">Reset to #001 every day</option>
+            <option value="continuous">Keep counting forever</option>
+          </select>
+        </label>
+        <label class="field">After charging
+          <select id="s-print">
+            <option value="bluetooth">Print via Bluetooth printer</option>
+            <option value="system">Print via phone print dialog</option>
+            <option value="none">Don't print</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="panel">
+        <h2>Printer</h2>
+        <p class="hint" id="printer-status"></p>
+        <div class="row">
+          <button class="btn grow" data-action="printer-connect">Connect printer</button>
+          <button class="btn grow" data-action="test-print">Test print</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Google Sheets (optional)</h2>
+        <p class="hint">Paste your Apps Script web-app URL (ends in <code>/exec</code>). See README for the 5-minute setup.</p>
+        <label class="field">Script URL <input id="s-sheets" type="url" placeholder="https://script.google.com/macros/s/…/exec"></label>
+        <div class="row">
+          <button class="btn grow" data-action="sheets-test">Test</button>
+          <button class="btn grow" data-action="sync-now">Sync now</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Menu items</h2>
+        <div id="menu-items"></div>
+        <button class="btn" data-action="item-add">+ Add item</button>
+        <h2>Add-ons</h2>
+        <div id="menu-addons"></div>
+        <button class="btn" data-action="addon-add">+ Add add-on</button>
+      </div>
+
+      <div class="panel">
+        <div class="row">
+          <button class="btn primary grow" data-action="settings-save">Save settings &amp; menu</button>
+        </div>
+        <div class="row">
+          <button class="btn danger grow" data-action="menu-reset">Reset menu to sample</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Cart bar (order view only) -->
+  <div class="cartbar" id="cartbar">
+    <button class="cart-summary" data-action="checkout-open" id="cart-summary">Tap items to start</button>
+    <button class="btn charge" data-action="checkout-open" id="charge-btn" disabled>CHARGE</button>
+  </div>
+
+  <nav class="tabs">
+    <button data-view="order" class="active">☕ Order</button>
+    <button data-view="sales">📊 Sales</button>
+    <button data-view="settings">⚙ Settings</button>
+  </nav>
+
+  <!-- Add-on picker -->
+  <div class="sheet" id="addon-sheet" hidden>
+    <div class="sheet-body">
+      <div class="sheet-head">
+        <h2 id="addon-title"></h2>
+        <button class="chip" data-action="sheet-close">✕</button>
+      </div>
+      <div class="addon-grid" id="addon-grid"></div>
+      <div class="qty">
+        <button class="btn big" data-action="qty-dec">−</button>
+        <span id="addon-qty">1</span>
+        <button class="btn big" data-action="qty-inc">+</button>
+      </div>
+      <button class="btn primary huge" data-action="addon-confirm" id="addon-confirm">Add</button>
+    </div>
+  </div>
+
+  <!-- Checkout -->
+  <div class="sheet" id="checkout-sheet" hidden>
+    <div class="sheet-body">
+      <div class="sheet-head">
+        <h2>Order <span id="next-no"></span></h2>
+        <button class="chip" data-action="sheet-close">✕</button>
+      </div>
+      <div id="cart-lines"></div>
+      <div class="total-line"><span>TOTAL</span><span id="cart-total"></span></div>
+      <p class="hint center">Tap payment to charge &amp; print</p>
+      <div class="pay-grid" id="pay-grid"></div>
+      <button class="btn danger" data-action="cart-clear">Clear order</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+  <div id="print-area" aria-hidden="true"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
