@@ -4,7 +4,8 @@ import { buildEscPos, receiptLines } from './receipt.js';
 import { downloadCsv } from './export.js';
 import { syncPending, pendingOrders, testConnection } from './sheets.js';
 import { SAMPLE_MENU, MENU_VERSION } from './menu.js';
-import { rp, dayKey, timeStr, orderNoStr, uid, lineTotal } from './util.js';
+import { rp, dayKey, timeStr, orderNoStr, uid, lineTotal, thousands } from './util.js';
+import { ICONS, itemIcon } from './icons.js';
 
 const DEFAULT_SETTINGS = {
   bizName: 'Seceda Homebrew',
@@ -48,7 +49,7 @@ function toast(msg, { error = false, actions = [], ms = 3000 } = {}) {
 // ---------- Navigation ----------
 function show(view) {
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === 'view-' + view));
-  document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('active', b.dataset.view === view));
+  document.querySelectorAll('button[data-view]').forEach((b) => b.classList.toggle('active', b.dataset.view === view));
   document.body.classList.toggle('on-order', view === 'order');
   if (view === 'sales') renderSales();
   if (view === 'settings') renderSettings();
@@ -67,9 +68,10 @@ function renderOrder() {
   for (const l of state.cart) counts[l.itemId] = (counts[l.itemId] || 0) + l.qty;
   $('grid').innerHTML = state.menu.items
     .filter((i) => (i.cat || 'Other') === state.cat)
-    .map((i) => `<button class="tile" data-item="${esc(i.id)}">
-        <span class="name">${esc(i.name)}</span>
-        <span class="price">${rp(i.price, true)}</span>
+    .map((i) => `<button class="tile${counts[i.id] ? ' in-cart' : ''}" data-item="${esc(i.id)}">
+        <span class="ico-circle">${itemIcon(i)}</span>
+        <span><span class="name">${esc(i.name)}</span>
+        <span class="price">${rp(i.price, true)}</span></span>
         ${counts[i.id] ? `<span class="badge">${counts[i.id]}</span>` : ''}
       </button>`).join('');
   renderCartBar();
@@ -80,7 +82,9 @@ const cartCount = () => state.cart.reduce((s, l) => s + l.qty, 0);
 
 function renderCartBar() {
   const n = cartCount();
-  $('cart-summary').textContent = n ? `${n} item${n > 1 ? 's' : ''} · ${rp(cartTotal(), true)}` : 'Tap items to start';
+  $('cart-summary').innerHTML = n
+    ? `<small>${n} item${n > 1 ? 's' : ''}</small><b>${rp(cartTotal(), true)}</b>`
+    : '<small>Tap a drink to start</small><b>Rp 0</b>';
   $('charge-btn').disabled = !n;
 }
 
@@ -234,30 +238,127 @@ async function connectPrinter() {
 }
 
 // ---------- Sales ----------
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// Compact money for big stat numbers: 1250000 -> "Rp 1,25jt", 85000 -> "Rp 85rb"
+function rpShort(n) {
+  if (n >= 1e6) return 'Rp ' + (n / 1e6).toFixed(n >= 1e7 ? 1 : 2).replace('.', ',').replace(/,?0+$/, '') + 'jt';
+  if (n >= 1e4) return 'Rp ' + Math.round(n / 1e3) + 'rb';
+  return rp(n, true);
+}
+
+function statCard(label, value, icon, hero = false) {
+  return `<div class="stat${hero ? ' hero' : ''}">
+    <span class="ico-circle">${icon}</span>
+    <div><small>${esc(label)}</small><b>${esc(value)}</b></div>
+  </div>`;
+}
+
+// Bar chart as inline SVG. bars: [{label, value}]
+function barChart(bars) {
+  const W = 560, H = 240, padL = 34, padB = 26, padT = 10;
+  const max = Math.max(1, ...bars.map((b) => b.value));
+  const step = Math.max(1, Math.ceil(max / 4));
+  const top = step * 4;
+  const plotW = W - padL, plotH = H - padB - padT;
+  const slot = plotW / bars.length;
+  const bw = Math.min(46, slot * 0.62);
+  let out = '';
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + plotH - (plotH * i) / 4;
+    out += `<line x1="${padL}" x2="${W}" y1="${y}" y2="${y}" stroke="#343434" stroke-dasharray="3 4"/>`;
+    out += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" fill="#9a9aa0" font-size="12">${step * i}</text>`;
+  }
+  bars.forEach((b, i) => {
+    const h = (plotH * b.value) / top;
+    const x = padL + slot * i + (slot - bw) / 2;
+    if (b.value) out += `<rect x="${x}" y="${padT + plotH - h}" width="${bw}" height="${h}" rx="6" fill="#bfe7da"><title>${esc(b.label)}: ${b.value}</title></rect>`;
+    out += `<text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle" fill="#9a9aa0" font-size="12">${esc(b.label)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Orders chart">${out}</svg>`;
+}
+
+function chartData(valid, from, to) {
+  if (from === to) {
+    // Orders per hour for a single day
+    const hours = valid.map((o) => new Date(o.ts).getHours());
+    const lo = Math.min(8, ...hours), hi = Math.max(20, ...hours);
+    const bars = [];
+    for (let h = lo; h <= hi; h++) bars.push({ label: String(h), value: hours.filter((x) => x === h).length });
+    return { title: 'Orders by hour', bars };
+  }
+  // Orders per day (last 14 days of the range at most)
+  const days = [];
+  const end = new Date(to + 'T00:00:00');
+  for (let d = new Date(end); dayKey(d) >= from && days.length < 14; d.setDate(d.getDate() - 1)) days.unshift(new Date(d));
+  const short = days.length > 7;
+  return {
+    title: 'Orders by day',
+    bars: days.map((d) => ({
+      label: short ? String(d.getDate()) : DOW[d.getDay()],
+      value: valid.filter((o) => o.day === dayKey(d)).length,
+    })),
+  };
+}
+
 async function renderSales() {
   const from = $('from').value || dayKey();
   const to = $('to').value || from;
   const orders = await db.ordersBetween(from, to);
   const valid = orders.filter((o) => o.status !== 'void');
+  const revenue = valid.reduce((s, o) => s + o.total, 0);
+  const items = valid.reduce((s, o) => s + o.lines.reduce((t, l) => t + l.qty, 0), 0);
+  $('stats').innerHTML = [
+    statCard('Revenue', rpShort(revenue), ICONS.money, true),
+    statCard('Paid orders', valid.length, ICONS.receipt),
+    statCard('Items sold', items, ICONS.cup),
+    statCard('Average order', valid.length ? rpShort(Math.round(revenue / valid.length)) : '–', ICONS.tag),
+  ].join('');
+
   const byPay = {};
   for (const o of valid) byPay[o.payment] = (byPay[o.payment] || 0) + o.total;
-  const cups = valid.reduce((s, o) => s + o.lines.reduce((t, l) => t + l.qty, 0), 0);
-  $('stats').innerHTML = [
-    ['Orders', valid.length], ['Revenue', rp(valid.reduce((s, o) => s + o.total, 0), true)],
-    ['Items sold', cups], ...Object.entries(byPay).map(([k, v]) => [k, rp(v, true)]),
-  ].map(([k, v]) => `<div class="stat"><small>${esc(k)}</small><b>${esc(v)}</b></div>`).join('');
+  $('pay-split').innerHTML = valid.length
+    ? `Revenue Rp ${thousands(revenue)} · ` + Object.entries(byPay).map(([k, v]) => `${esc(k)} <b>${rp(v, true)}</b>`).join(' · ')
+    : '';
+
+  // Top items
+  const tally = {};
+  const itemByName = Object.fromEntries(state.menu.items.map((i) => [i.name, i]));
+  for (const o of valid) for (const l of o.lines) {
+    const t = (tally[l.name] ||= { qty: 0, amt: 0 });
+    t.qty += l.qty;
+    t.amt += lineTotal(l);
+  }
+  const top = Object.entries(tally).sort((a, b) => b[1].qty - a[1].qty).slice(0, 5);
+  $('top-items').innerHTML = top.length ? top.map(([name, t]) => `
+    <div class="top-item">
+      <span class="ico-circle sm">${itemIcon(itemByName[name] || { name })}</span>
+      <div><div class="t-name">${esc(name)}</div><div class="t-sub">Sold: ${t.qty}</div></div>
+      <span class="t-amt">${rpShort(t.amt)}</span>
+    </div>`).join('') : '<p class="empty">No sales yet in this range.</p>';
+
+  const chart = chartData(valid, from, to);
+  $('chart-title').textContent = chart.title;
+  $('chart').innerHTML = valid.length ? barChart(chart.bars) : '<p class="empty">No orders yet.</p>';
 
   $('orders').innerHTML = orders.slice().reverse().map((o) => `
     <div class="order-card ${o.status === 'void' ? 'void' : ''}">
       <header><span>${orderNoStr(o.no)}${o.customer ? ' · ' + esc(o.customer) : ''}</span><span class="o-total">${rp(o.total, true)}</span></header>
-      <div class="o-meta">${esc(o.day)} ${timeStr(new Date(o.ts))} · ${esc(o.payment)}${o.status === 'void' ? ' · VOID' : ''}${state.settings.sheetsUrl && !o.synced ? ' · not synced' : ''}</div>
+      <div class="o-meta">${esc(dateLabel(o.day))} ${timeStr(new Date(o.ts))} · ${esc(o.payment)}${o.status === 'void' ? ' · VOID' : ''}${state.settings.sheetsUrl && !o.synced ? ' · not synced' : ''}</div>
       <div class="o-items">${o.lines.map((l) => `${l.qty}× ${esc(l.name)}${l.addons.length ? ' (' + l.addons.map((a) => esc(a.name)).join(', ') + ')' : ''}`).join('<br>')}</div>
       <div class="row">
         <button class="btn small" data-reprint="${esc(o.id)}">🖨 Reprint</button>
         <button class="btn small" data-void="${esc(o.id)}">${o.status === 'void' ? 'Un-void' : 'Void'}</button>
       </div>
-    </div>`).join('') || '<p class="hint center">No orders in this range.</p>';
+    </div>`).join('') || '<p class="empty">No orders in this range.</p>';
   renderSyncLine();
+}
+
+// '2026-09-24' -> '24 Sep'
+function dateLabel(day) {
+  const [, m, d] = day.split('-');
+  return `${+d} ${MONTHS[+m - 1]}`;
 }
 
 async function renderSyncLine() {
@@ -351,7 +452,7 @@ async function saveSettings() {
   state.menu = clone(m);
   await db.kvSet('settings', s);
   await db.kvSet('menu', state.menu);
-  $('brand').textContent = s.bizName;
+  document.querySelectorAll('.brand-name').forEach((el) => (el.textContent = s.bizName));
   renderMenuEditor();
   renderOrder();
   toast('Saved');
@@ -464,7 +565,7 @@ async function init() {
     await db.kvSet('menu', state.menu);
     await db.kvSet('menuVersion', MENU_VERSION);
   }
-  $('brand').textContent = state.settings.bizName;
+  document.querySelectorAll('.brand-name').forEach((el) => (el.textContent = state.settings.bizName));
   $('from').value = $('to').value = dayKey();
 
   document.addEventListener('click', onClick);
