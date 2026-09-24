@@ -1,9 +1,9 @@
 // Offline cache: serve app files from cache, refresh them in the background.
 // Bump VERSION when shipping changes so phones pick up the new files.
-const VERSION = 'seceda-pos-v6';
+const VERSION = 'seceda-pos-v7';
 const FILES = [
   './', 'index.html', 'styles.css', 'app.js', 'db.js', 'util.js', 'menu.js',
-  'receipt.js', 'printer.js', 'icons.js', 'export.js', 'sheets.js', 'manifest.webmanifest',
+  'receipt.js', 'printer.js', 'export.js', 'sheets.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png',
 ];
 
@@ -21,20 +21,7 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   const req = e.request;
-  if (req.method !== 'GET') return;
-  const url = new URL(req.url);
-  // Google Fonts: cache-first so the Inter font also works offline.
-  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
-    e.respondWith(caches.open(VERSION).then(async (cache) => {
-      const hit = await cache.match(req);
-      if (hit) return hit;
-      const res = await fetch(req);
-      if (res.ok || res.type === 'opaque') cache.put(req, res.clone());
-      return res;
-    }));
-    return;
-  }
-  if (url.origin !== location.origin) return;
+  if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
   e.respondWith(
     caches.open(VERSION).then(async (cache) => {
       const cached = await cache.match(req, { ignoreSearch: true });

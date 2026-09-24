@@ -3,81 +3,47 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#141414">
+  <meta name="theme-color" content="#2b1d14">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Seceda POS</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Sidebar (tablet / landscape) -->
-  <aside class="sidebar">
-    <div class="logo"><span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3.5c-.6.8.6 1.7 0 2.5M11 3.5c-.6.8.6 1.7 0 2.5M14 3.5c-.6.8.6 1.7 0 2.5"/></svg></span><span class="brand-name">Seceda Homebrew</span></div>
-    <nav class="side-nav">
-      <button data-view="order" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3.5c-.6.8.6 1.7 0 2.5M11 3.5c-.6.8.6 1.7 0 2.5M14 3.5c-.6.8.6 1.7 0 2.5"/></svg><span>Order</span></button>
-      <button data-view="sales"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><rect x="5.5" y="11" width="3" height="6" rx="1"/><rect x="10.5" y="6" width="3" height="11" rx="1"/><rect x="15.5" y="9" width="3" height="8" rx="1"/></svg><span>Dashboard</span></button>
-      <button data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Settings</span></button>
-    </nav>
-  </aside>
-
   <header class="topbar">
-    <div class="logo"><span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3.5c-.6.8.6 1.7 0 2.5M11 3.5c-.6.8.6 1.7 0 2.5M14 3.5c-.6.8.6 1.7 0 2.5"/></svg></span><span class="brand-name" id="brand">Seceda Homebrew</span></div>
+    <div class="brand" id="brand">Seceda Homebrew</div>
     <button class="chip" id="printer-btn" data-action="printer-connect">🖨 Connect</button>
   </header>
 
   <main>
     <!-- ORDER -->
     <section id="view-order" class="view active">
-      <h1 class="page-title">Menu</h1>
       <div class="cats" id="cats"></div>
       <div class="grid" id="grid"></div>
     </section>
 
-    <!-- DASHBOARD -->
+    <!-- SALES -->
     <section id="view-sales" class="view">
-      <div class="page-head">
-        <h1 class="page-title">Dashboard</h1>
-        <div class="date-chips">
-          <label class="date-chip"><span>From</span><input type="date" id="from"></label>
-          <label class="date-chip"><span>To</span><input type="date" id="to"></label>
+      <div class="panel">
+        <div class="row">
+          <label>From <input type="date" id="from"></label>
+          <label>To <input type="date" id="to"></label>
         </div>
-      </div>
-      <div class="stats" id="stats"></div>
-      <p class="pay-split" id="pay-split"></p>
-
-      <div class="dash-grid">
-        <div class="card">
-          <div class="card-head"><h2>Top items</h2></div>
-          <div id="top-items"></div>
-        </div>
-        <div class="card">
-          <div class="card-head"><h2 id="chart-title">Orders</h2></div>
-          <div id="chart"></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">
-          <h2>Export</h2>
-          <button class="chip" data-action="export">⬇ Export CSV</button>
+        <div class="stats" id="stats"></div>
+        <div class="row">
+          <button class="btn primary grow" data-action="export">⬇ Export CSV</button>
         </div>
         <div class="sync-line" id="sync-line"></div>
       </div>
-
-      <h2 class="section-title">Orders</h2>
       <div id="orders"></div>
     </section>
 
     <!-- SETTINGS -->
     <section id="view-settings" class="view">
-      <h1 class="page-title">Settings</h1>
-      <div class="card">
+      <div class="panel">
         <h2>Shop</h2>
         <label class="field">Business name <input id="s-biz" type="text"></label>
         <label class="field">Order number
@@ -96,7 +62,7 @@
         </label>
       </div>
 
-      <div class="card">
+      <div class="panel">
         <h2>Printer</h2>
         <div id="rawbt-help" hidden>
           <p class="hint">Printing through the <b>RawBT</b> app. One-time setup:</p>
@@ -106,7 +72,7 @@
             <li>In RawBT settings: <b>Connection method</b> = Bluetooth → pick your printer. <b>Printer driver</b> = ESC/POS. Paper = 58mm.</li>
             <li>Close GrabMerchant (only one app can use the printer at a time), then tap <b>Test print</b> below.</li>
           </ol>
-          <a class="btn link" href="https://play.google.com/store/apps/details?id=ru.a402d.rawbtprinter" target="_blank" rel="noopener">Get RawBT on Play Store</a>
+          <a class="btn grow link" href="https://play.google.com/store/apps/details?id=ru.a402d.rawbtprinter" target="_blank" rel="noopener">Get RawBT on Play Store</a>
         </div>
         <div id="ble-printer">
           <p class="hint" id="printer-status"></p>
@@ -125,7 +91,7 @@
         </details>
       </div>
 
-      <div class="card">
+      <div class="panel">
         <h2>Google Sheets (optional)</h2>
         <p class="hint">Paste your Apps Script web-app URL (ends in <code>/exec</code>). See README for the 5-minute setup.</p>
         <label class="field">Script URL <input id="s-sheets" type="url" placeholder="https://script.google.com/macros/s/…/exec"></label>
@@ -135,16 +101,16 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="panel">
         <h2>Menu items</h2>
         <div id="menu-items"></div>
         <button class="btn" data-action="item-add">+ Add item</button>
-        <h2 class="mt">Add-ons</h2>
+        <h2>Add-ons</h2>
         <div id="menu-addons"></div>
         <button class="btn" data-action="addon-add">+ Add add-on</button>
       </div>
 
-      <div class="card">
+      <div class="panel">
         <div class="row">
           <button class="btn primary grow" data-action="settings-save">Save settings &amp; menu</button>
         </div>
@@ -162,18 +128,17 @@
   </div>
 
   <nav class="tabs">
-    <button data-view="order" class="active"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3.5c-.6.8.6 1.7 0 2.5M11 3.5c-.6.8.6 1.7 0 2.5M14 3.5c-.6.8.6 1.7 0 2.5"/></svg></span>Order</button>
-    <button data-view="sales"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><rect x="5.5" y="11" width="3" height="6" rx="1"/><rect x="10.5" y="6" width="3" height="11" rx="1"/><rect x="15.5" y="9" width="3" height="8" rx="1"/></svg></span>Dashboard</button>
-    <button data-view="settings"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></span>Settings</button>
+    <button data-view="order" class="active">☕ Order</button>
+    <button data-view="sales">📊 Sales</button>
+    <button data-view="settings">⚙ Settings</button>
   </nav>
 
   <!-- Add-on picker -->
   <div class="sheet" id="addon-sheet" hidden>
     <div class="sheet-body">
-      <div class="handle"></div>
       <div class="sheet-head">
         <h2 id="addon-title"></h2>
-        <button class="chip round" data-action="sheet-close" aria-label="Close">✕</button>
+        <button class="chip" data-action="sheet-close">✕</button>
       </div>
       <div class="addon-grid" id="addon-grid"></div>
       <div class="qty">
@@ -188,19 +153,18 @@
   <!-- Checkout -->
   <div class="sheet" id="checkout-sheet" hidden>
     <div class="sheet-body">
-      <div class="handle"></div>
       <div class="sheet-head">
         <h2>Order <span id="next-no"></span></h2>
-        <button class="chip round" data-action="sheet-close" aria-label="Close">✕</button>
+        <button class="chip" data-action="sheet-close">✕</button>
       </div>
       <label class="field name-field">Customer name (optional)
         <input id="cust-name" type="text" maxlength="24" autocomplete="off" autocapitalize="words" enterkeyhint="done" placeholder="e.g. Budi">
       </label>
       <div id="cart-lines"></div>
-      <div class="total-line"><span>Total</span><span id="cart-total"></span></div>
+      <div class="total-line"><span>TOTAL</span><span id="cart-total"></span></div>
       <p class="hint center">Tap payment to charge &amp; print</p>
       <div class="pay-grid" id="pay-grid"></div>
-      <button class="btn quiet" data-action="cart-clear">Clear order</button>
+      <button class="btn danger" data-action="cart-clear">Clear order</button>
     </div>
   </div>
 
